@@ -1,0 +1,92 @@
+name: WOODMO Live release and rollback
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        type: choice
+        options: [release, rollback]
+        required: true
+      revision:
+        description: Full tested commit SHA, or woodmo-live-before-* tag for rollback
+        type: string
+        required: true
+permissions:
+  contents: read
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  deploy:
+    if: github.repository == 'Nabster77/WoodMo_V3.0' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.publish.outputs.page_url }}
+    permissions:
+      contents: write
+      pages: write
+      id-token: write
+    env:
+      VITE_DEPLOY_BASE: /WoodMo_V3.0/
+      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Select and validate source
+        env:
+          MODE: ${{ inputs.mode }}
+          REVISION: ${{ inputs.revision }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$VITE_SUPABASE_URL" == 'https://tulndunkpsynkbbebenf.supabase.co' ]]
+          [[ -n "$VITE_SUPABASE_ANON_KEY" ]]
+          previous=$(curl -fsS --max-time 15 "https://nabster77.github.io/WoodMo_V3.0/version.json?release_check=$GITHUB_RUN_ID" | jq -er '.commit | select(test("^[0-9a-f]{7,40}$"))')
+          previous=$(git rev-parse --verify "$previous^{commit}")
+          if [[ "$MODE" == release ]]; then
+            [[ "$REVISION" =~ ^[a-f0-9]{40}$ ]]
+            git merge-base --is-ancestor "$REVISION" HEAD
+            tested=$(curl -fsS --max-time 15 "https://testwoodmo.github.io/version.json?release_check=$GITHUB_RUN_ID" | jq -er '.commit | select(test("^[0-9a-f]{7,40}$"))')
+            [[ "$(git rev-parse --verify "$tested^{commit}")" == "$REVISION" ]]
+            blocked=$(git diff --name-only "$previous" "$REVISION" -- supabase scripts .github data public | grep -Ev '^public/.*[.](png|svg|webp|ico|jpg|jpeg|woff2?|js)$' || true)
+            [[ -z "$blocked" ]] || { echo "Unreviewed backend, scripts, or data changes"; exit 1; }
+            target="$REVISION"
+          else
+            [[ "$MODE" == rollback && "$REVISION" =~ ^woodmo-live-before-[0-9]+-[0-9]+$ ]]
+            target=$(git rev-parse --verify "refs/tags/$REVISION^{commit}")
+          fi
+          echo "WOODMO_PREVIOUS=$previous" >> "$GITHUB_ENV"
+          echo "WOODMO_TARGET=$target" >> "$GITHUB_ENV"
+          git checkout --detach "$target"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Build website only
+        run: GITHUB_SHA="$WOODMO_TARGET" npm run build
+      - name: Verify live website
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -qrF "$VITE_SUPABASE_URL" dist/assets
+          if grep -qrF 'fsztsmnxbffanyfbytnr' dist || grep -qiF 'WOODMO TEST' dist/index.html dist/manifest.webmanifest; then
+            echo 'Test configuration detected in live build.'
+            exit 1
+          fi
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - name: Tag previously published source
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          tag="woodmo-live-before-$GITHUB_RUN_ID-$GITHUB_RUN_ATTEMPT"
+          gh api --method POST "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$tag" -f sha="$WOODMO_PREVIOUS" >/dev/null
+          echo "Rollback tag: $tag" >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/deploy-pages@v4
+        id: publish
