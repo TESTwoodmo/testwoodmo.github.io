@@ -1,7 +1,9 @@
 # WOODMO – Live-Rollout
 
-- [ ] `WoodMo_V3.0` verwendet das Live-Projekt. `TESTwoodmo` verwendet seine isolierte Testdatenbank. Prüfe die URLs in beiden Builds.
-- [ ] Der Live-Build zeigt kein WOODMO-TEST-Banner. Der Test-Build zeigt es durchgehend.
-- [ ] Der freigegebene Diff enthält ausschließlich Frontend und Programmlogik. Er enthält keine Datendateien, Seeds, Migrationen oder Sync-Artefakte.
-- [ ] Der Live-Workflow veröffentlicht ausschließlich Webdateien. Live-Buchungen, Journale und Tagesabschlüsse bleiben unangetastet.
-- [ ] Nach dem Deployment Live-Login und Artikelansicht prüfen. Keine Testbuchung auslösen.
+- [ ] Live, V2 und WOODMO TEST verwenden unterschiedliche Supabase-Projekte. Prüfe die Zieladressen beider Builds.
+- [ ] Das Banner WOODMO TEST erscheint ausschließlich im Test-Build.
+- [ ] Der aktuell veröffentlichte Live-Commit ist als Rollback-Punkt markiert. Der freigegebene Stand enthält nur Programmcode und Webdateien.
+- [ ] Deployment und Rollback führen keine Datenimporte, Migrationen oder Resets aus. Live-Buchungen, offene Kassen, Journale und Tagesabschlüsse bleiben erhalten.
+- [ ] Nach dem Live-Rollout Versionsanzeige, Login und Artikelansicht prüfen. Keine Testbuchung auslösen.
+
+Der Workflow-Entwurf unter `release-draft/deploy-pages.yml` bleibt bis zur Freigabe inaktiv. Notfall-Rollback: In GitHub Actions den Modus `rollback` und den im letzten Live-Lauf angezeigten `woodmo-live-before-*`-Tag wählen. Die Auswahl startet den Vorgang, die Veröffentlichung benötigt die Laufzeit des Builds und von GitHub Pages.
