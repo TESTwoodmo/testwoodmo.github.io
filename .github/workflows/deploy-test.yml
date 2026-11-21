@@ -1,0 +1,68 @@
+name: WOODMO TEST on GitHub Pages
+on: workflow_dispatch
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: woodmo-test-pages
+  cancel-in-progress: false
+jobs:
+  publish:
+    if: github.repository == 'TESTwoodmo/testwoodmo.github.io'
+    runs-on: ubuntu-latest
+    environment: github-pages
+    env:
+      VITE_DEPLOY_BASE: /
+      VITE_SUPABASE_URL: ${{ vars.TEST_SUPABASE_URL }}
+      VITE_SUPABASE_ANON_KEY: ${{ secrets.TEST_SUPABASE_ANON_KEY }}
+      TEST_SUPABASE_REF: ${{ vars.TEST_SUPABASE_REF }}
+    steps:
+      - name: Require isolated database
+        shell: bash
+        run: |
+          set -eu
+          [[ "$TEST_SUPABASE_REF" =~ ^[a-z0-9]{20}$ ]]
+          [[ "$TEST_SUPABASE_REF" != tulndunkpsynkbbebenf && "$TEST_SUPABASE_REF" != fsztsmnxbffanyfbytnr ]]
+          [[ "$VITE_SUPABASE_URL" == "https://${TEST_SUPABASE_REF}.supabase.co" ]]
+          [[ -n "$VITE_SUPABASE_ANON_KEY" ]]
+      - uses: actions/checkout@v4
+        with:
+          repository: Nabster77/WoodMo_V3.0
+          ref: staging
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Label test build
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          page = Path('index.html')
+          html = page.read_text(encoding='utf-8')
+          assert '</body>' in html
+          badge = '<div style="position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:2147483647;background:#ffbf47;color:#161616;padding:3px 10px;font:bold 14px sans-serif;pointer-events:none">WOODMO TEST</div>'
+          page.write_text(html.replace('</body>', badge + '</body>', 1), encoding='utf-8')
+          config = Path('vite.config.ts')
+          vite = config.read_text(encoding='utf-8')
+          assert "short_name: 'WOODMO V3'" in vite
+          config.write_text(vite.replace("name: 'WOODMO Kassen-App Version 3.0'", "name: 'WOODMO TEST'").replace("short_name: 'WOODMO V3'", "short_name: 'WOODMO TEST'"), encoding='utf-8')
+          PY
+      - run: npm ci
+      - name: Build test app
+        run: GITHUB_SHA="$(git rev-parse HEAD)" npm run build
+      - name: Reject production endpoints in build
+        run: |
+          grep -q 'WOODMO TEST' dist/index.html
+          grep -q 'WOODMO TEST' dist/manifest.webmanifest
+          if grep -qrE 'tulndunkpsynkbbebenf|fsztsmnxbffanyfbytnr' dist; then
+            echo 'A V2 or live V3 endpoint is present in the test build.'
+            exit 1
+          fi
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - uses: actions/deploy-pages@v4
