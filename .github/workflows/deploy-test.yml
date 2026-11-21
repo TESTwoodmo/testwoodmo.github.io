@@ -861,7 +861,7 @@ jobs:
           page = Path('index.html')
           html = page.read_text(encoding='utf-8')
           assert '</body>' in html
-          badge = '<div style="position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:2147483647;background:#ffbf47;color:#161616;padding:3px 10px;font:bold 14px sans-serif;pointer-events:none">WOODMO TEST</div>'
+          badge = '<style>@media (min-width:1100px){#woodmo-test-badge{left:calc(50% + 125px)!important}}</style><div id="woodmo-test-badge" style="position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:2147483647;background:#ffbf47;color:#161616;padding:3px 10px;font:bold 14px sans-serif;pointer-events:none">WOODMO TEST</div>'
           page.write_text(html.replace('</body>', badge + '</body>', 1), encoding='utf-8')
           config = Path('vite.config.ts')
           vite = config.read_text(encoding='utf-8')
