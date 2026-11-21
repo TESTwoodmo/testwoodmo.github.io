@@ -233,4 +233,13 @@ jobs:
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
+      - name: Wait for GitHub Pages artifact indexing
+        run: sleep 15
       - uses: actions/deploy-pages@v4
+        id: deploy
+        continue-on-error: true
+      - name: Wait before retrying Pages
+        if: steps.deploy.outcome == 'failure'
+        run: sleep 15
+      - uses: actions/deploy-pages@v4
+        if: steps.deploy.outcome == 'failure'
