@@ -14,16 +14,16 @@ jobs:
     environment: github-pages
     env:
       VITE_DEPLOY_BASE: /
-      VITE_SUPABASE_URL: https://fsztsmnxbffanyfbytnr.supabase.co
+      VITE_SUPABASE_URL: https://qpoafsvsnrwfpvlizkpq.supabase.co
       VITE_SUPABASE_ANON_KEY: ${{ vars.TEST_SUPABASE_PUBLISHABLE_KEY }}
-      TEST_SUPABASE_REF: fsztsmnxbffanyfbytnr
+      TEST_SUPABASE_REF: qpoafsvsnrwfpvlizkpq
     steps:
       - name: Require isolated database
         shell: bash
         run: |
           set -eu
           [[ "$TEST_SUPABASE_REF" =~ ^[a-z0-9]{20}$ ]]
-          [[ "$TEST_SUPABASE_REF" != tulndunkpsynkbbebenf ]]
+          [[ "$TEST_SUPABASE_REF" != tulndunkpsynkbbebenf && "$TEST_SUPABASE_REF" != fsztsmnxbffanyfbytnr ]]
           [[ "$VITE_SUPABASE_URL" == "https://${TEST_SUPABASE_REF}.supabase.co" ]]
           [[ -n "$VITE_SUPABASE_ANON_KEY" ]]
       - uses: actions/checkout@v4
@@ -58,7 +58,7 @@ jobs:
           grep -q 'WOODMO TEST' dist/index.html
           grep -q 'WOODMO TEST' dist/manifest.webmanifest
           grep -qrF "$VITE_SUPABASE_URL" dist/assets
-          if grep -qrE 'tulndunkpsynkbbebenf' dist; then
+          if grep -qrE 'tulndunkpsynkbbebenf|fsztsmnxbffanyfbytnr' dist; then
             echo 'The live V3 endpoint is present in the test build.'
             exit 1
           fi
