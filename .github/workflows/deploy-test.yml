@@ -1082,6 +1082,113 @@ jobs:
           WOODMO_REPLAY_PATCH
           git apply --check "$RUNNER_TEMP/woodmo-replay.patch"
           git apply "$RUNNER_TEMP/woodmo-replay.patch"
+          base64 --decode <<'WOODMO_TEST_REPLAY_SOURCE' | gzip -dc > "$RUNNER_TEMP/woodmo-test-replay-source.json"
+          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
+          WOODMO_TEST_REPLAY_SOURCE
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          sources = json.loads((Path(os.environ["RUNNER_TEMP"]) / "woodmo-test-replay-source.json").read_text(encoding="utf-8"))
+          for filename, contents in sources.items():
+              path = Path(filename)
+              path.parent.mkdir(parents=True, exist_ok=True)
+              path.write_text(contents, encoding="utf-8")
+          PY
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -1101,30 +1208,10 @@ jobs:
           config.write_text(vite.replace("name: 'WOODMO Kassen-App Version 3.0'", "name: 'WOODMO TEST'").replace("short_name: 'WOODMO V3'", "short_name: 'WOODMO TEST'"), encoding='utf-8')
           PY
       - run: npm ci
-      - name: Build replay starting point and 3.33.1 target
-        run: |
-          set -euo pipefail
-          cp src/releaseNotes.json "$RUNNER_TEMP/woodmo-release-notes.json"
-          node --input-type=commonjs <<'NODE'
-          const fs = require('node:fs');
-          const path = 'src/releaseNotes.json';
-          const notes = JSON.parse(fs.readFileSync(path, 'utf8'));
-          notes.version = '3.33.0-test';
-          notes.title = 'WOODMO 3.33.0-test';
-          fs.writeFileSync(path, JSON.stringify(notes, null, 2) + '\n');
-          NODE
-          npm run build -- --outDir "$RUNNER_TEMP/woodmo-replay" --emptyOutDir
-          cp "$RUNNER_TEMP/woodmo-release-notes.json" src/releaseNotes.json
-          npm run build
-          cp -n "$RUNNER_TEMP/woodmo-replay"/assets/* dist/assets/
-          node --input-type=commonjs <<'NODE'
-          const fs = require('node:fs');
-          const baseline = process.env.RUNNER_TEMP + '/woodmo-replay/index.html';
-          const html = fs.readFileSync(baseline, 'utf8');
-          if (!html.includes('<head>')) throw new Error('Missing replay document head');
-          const start = '<script>try{sessionStorage.removeItem("woodmo_approved_activation_v1")}catch{}history.replaceState(history.state,"","/")</script>';
-          fs.writeFileSync('dist/update-test.html', html.replace('<head>', '<head>' + start));
-          NODE
+      - name: Build project and repeatable test entry
+        env:
+          WOODMO_TEST_REPLAY: '1'
+        run: node scripts/build-test-replay.mjs
       - name: Reject production endpoints in build
         run: |
           node -e 'if (JSON.parse(require("fs").readFileSync("dist/version.json", "utf8")).version !== "3.33.1") process.exit(1)'
