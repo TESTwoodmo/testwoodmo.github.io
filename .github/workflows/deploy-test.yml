@@ -1058,6 +1058,30 @@ jobs:
           WOODMO_UPDATE_PATCH
           git apply --ignore-space-change --check "$RUNNER_TEMP/woodmo-update.patch"
           git apply --ignore-space-change "$RUNNER_TEMP/woodmo-update.patch"
+          base64 --decode <<'WOODMO_REPLAY_PATCH' | gzip -dc > "$RUNNER_TEMP/woodmo-replay.patch"
+          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
+          WOODMO_REPLAY_PATCH
+          git apply --check "$RUNNER_TEMP/woodmo-replay.patch"
+          git apply "$RUNNER_TEMP/woodmo-replay.patch"
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -1076,22 +1100,34 @@ jobs:
           assert "short_name: 'WOODMO V3'" in vite
           config.write_text(vite.replace("name: 'WOODMO Kassen-App Version 3.0'", "name: 'WOODMO TEST'").replace("short_name: 'WOODMO V3'", "short_name: 'WOODMO TEST'"), encoding='utf-8')
           PY
-      - name: Set version for the update run on the test server
+      - run: npm ci
+      - name: Build replay starting point and 3.33.1 target
         run: |
+          set -euo pipefail
+          cp src/releaseNotes.json "$RUNNER_TEMP/woodmo-release-notes.json"
           node --input-type=commonjs <<'NODE'
           const fs = require('node:fs');
           const path = 'src/releaseNotes.json';
           const notes = JSON.parse(fs.readFileSync(path, 'utf8'));
-          notes.version = '3.33.2-test.1';
-          notes.title = 'WOODMO 3.33.2-test.1';
+          notes.version = '3.33.0-test';
+          notes.title = 'WOODMO 3.33.0-test';
           fs.writeFileSync(path, JSON.stringify(notes, null, 2) + '\n');
           NODE
-      - run: npm ci
-      - name: Build test app
-        run: npm run build
+          npm run build -- --outDir "$RUNNER_TEMP/woodmo-replay" --emptyOutDir
+          cp "$RUNNER_TEMP/woodmo-release-notes.json" src/releaseNotes.json
+          npm run build
+          cp -n "$RUNNER_TEMP/woodmo-replay"/assets/* dist/assets/
+          node --input-type=commonjs <<'NODE'
+          const fs = require('node:fs');
+          const baseline = process.env.RUNNER_TEMP + '/woodmo-replay/index.html';
+          const html = fs.readFileSync(baseline, 'utf8');
+          if (!html.includes('<head>')) throw new Error('Missing replay document head');
+          const start = '<script>try{sessionStorage.removeItem("woodmo_approved_activation_v1")}catch{}history.replaceState(history.state,"","/")</script>';
+          fs.writeFileSync('dist/update-test.html', html.replace('<head>', '<head>' + start));
+          NODE
       - name: Reject production endpoints in build
         run: |
-          node -e 'if (JSON.parse(require("fs").readFileSync("dist/version.json", "utf8")).version !== "3.33.2-test.1") process.exit(1)'
+          node -e 'if (JSON.parse(require("fs").readFileSync("dist/version.json", "utf8")).version !== "3.33.1") process.exit(1)'
           grep -q 'WOODMO TEST' dist/index.html
           grep -q 'WOODMO TEST' dist/manifest.webmanifest
           grep -qrF "$VITE_SUPABASE_URL" dist/assets
