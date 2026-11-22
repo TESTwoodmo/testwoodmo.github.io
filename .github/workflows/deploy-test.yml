@@ -1076,12 +1076,22 @@ jobs:
           assert "short_name: 'WOODMO V3'" in vite
           config.write_text(vite.replace("name: 'WOODMO Kassen-App Version 3.0'", "name: 'WOODMO TEST'").replace("short_name: 'WOODMO V3'", "short_name: 'WOODMO TEST'"), encoding='utf-8')
           PY
+      - name: Set version for the update run on the test server
+        run: |
+          node --input-type=commonjs <<'NODE'
+          const fs = require('node:fs');
+          const path = 'src/releaseNotes.json';
+          const notes = JSON.parse(fs.readFileSync(path, 'utf8'));
+          notes.version = '3.33.2-test.1';
+          notes.title = 'WOODMO 3.33.2-test.1';
+          fs.writeFileSync(path, JSON.stringify(notes, null, 2) + '\n');
+          NODE
       - run: npm ci
       - name: Build test app
         run: npm run build
       - name: Reject production endpoints in build
         run: |
-          node -e 'if (JSON.parse(require("fs").readFileSync("dist/version.json", "utf8")).version !== "3.33.1") process.exit(1)'
+          node -e 'if (JSON.parse(require("fs").readFileSync("dist/version.json", "utf8")).version !== "3.33.2-test.1") process.exit(1)'
           grep -q 'WOODMO TEST' dist/index.html
           grep -q 'WOODMO TEST' dist/manifest.webmanifest
           grep -qrF "$VITE_SUPABASE_URL" dist/assets
