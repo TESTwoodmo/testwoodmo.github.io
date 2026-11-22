@@ -6,6 +6,10 @@ on:
         description: 'Stand aus Nabster77/WoodMo_V3.0 (Branch oder Commit). Live-Stand = main'
         required: true
         default: 'claude/testserver-uebernahme'
+      version_label:
+        description: 'Angezeigte Version (leer = wie Live, z. B. bei main)'
+        required: false
+        default: '3.35-test'
   push:
     branches: [main]
     paths: ['.github/workflows/deploy-test.yml']
@@ -47,6 +51,8 @@ jobs:
           node-version: 22
           cache: npm
       - name: Label test build
+        env:
+          VERSION_LABEL: ${{ github.event_name == 'workflow_dispatch' && inputs.version_label || '3.35-test' }}
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -58,6 +64,13 @@ jobs:
           config = Path('vite.config.ts')
           vite = config.read_text(encoding='utf-8')
           assert "short_name: 'WOODMO V3'" in vite
+          import json, os
+          label = os.environ.get('VERSION_LABEL', '').strip()
+          if label:
+              notes_path = Path('src/releaseNotes.json')
+              notes = json.loads(notes_path.read_text(encoding='utf-8'))
+              notes['version'] = label
+              notes_path.write_text(json.dumps(notes, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
           config.write_text(vite.replace("name: 'WOODMO Kassen-App Version 3.0'", "name: 'WOODMO TEST'").replace("short_name: 'WOODMO V3'", "short_name: 'WOODMO TEST'"), encoding='utf-8')
           PY
       - run: npm ci
